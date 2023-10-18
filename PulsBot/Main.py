@@ -5,26 +5,43 @@ from selenium.webdriver.common.by import By
 import sys
 from PIL import Image
 import re
+import numpy as np
 
 scrapnumber = int(sys.argv[1])
+username = str(sys.argv[2])
+password = str(sys.argv[3])
+
 graphnumber = 0
 
 
 ####
 driver = webdriver.Firefox()
 
-driver.get("https://www.geeksforgeeks.org/") #set real website :D
+driver.get("https://pulsars.nanograv.org/login?authenticator=orcid&return=Lw==")
 ####
 
-def getToDatabase(creds):
+def getToDatabase(creds = np.array):
     #use credentials to get to the pulsar database to start the process
-    return
+    sleep(1)
+    cookies = driver.find_element(By.ID, "onetrust-reject-all-handler")
+    cookies.click()
+    sleep(.5)
+    username = driver.find_element(By.ID, "username")
+    username.send_keys(creds[0])
+    password = driver.find_element(By.ID, "password")
+    password.send_keys(creds[1])
+    sleep(1)
+    login = driver.find_element(By.ID, "signin-button")
+    login.click()
+    sleep(10)
+    driver.get("https://pulsars.nanograv.org/psrsearch/surveys/AO327/plots/all")
+    #get certified to start accessing database data
 
 
 def imagescrap(graphnumber):
     #use selenium to scrap for the time vs DM graph (if the entire image is stored as one thing then find out how to extract just the graph) and save it under the name "TvDM#"
 
-    graph = driver.find_element(By.CLASS_NAME,"ant-input") #replace with proper class name
+    graph = driver.find_element(By.CLASS_NAME,"dataTables_length") #replace with proper class name
     
     filename = "TotalImage{}".format(graphnumber)
 
@@ -39,7 +56,7 @@ def goToNextData():
 def candidate(graphnumber):
     #use selenium to find information about the pulsar incase it isn't noise
 
-    pulsarinfo = driver.find_element(By.CLASS_NAME,"video-card-heading") #replace with proper class name
+    pulsarinfo = driver.find_element(By.CLASS_NAME,"dataTables_length") #replace with proper class name
     
     filename = "NoiseDocs/PULSARINFO{}ORDERINGINFO".format(graphnumber)
 
@@ -77,26 +94,26 @@ def PulsType(confidence, fileloc, grnoise):
     if grnoise ==1:
         writetofile.write("[Noise] CONFIDENCE:{}%".format(confidence))
 
-        notes = driver.find_element(By.CLASS_NAME,"ant-input") #replace with the notes box
+        notes = driver.find_element(By.CLASS_NAME,"dataTables_length") #replace with the notes box
         notes.send_keys("[Noise] CONFIDENCE:{}% ANALYZED BY PULSBOT https://github.com/DanielCurtis27/PulsBot".format(confidence))
     
-        submit = driver.find_element(By.CLASS_NAME,"ant-btn") #replace with proper submit button
+        submit = driver.find_element(By.CLASS_NAME,"dataTables_length") #replace with proper submit button
         submit.click()
 
     elif grnoise==2: 
         writetofile.write("[RFI] CONFIDENCE:{}%".format(confidence))
 
-        skip = driver.find_element(By.CLASS_NAME,"ant-btn") #replace with proper submit button
+        skip = driver.find_element(By.CLASS_NAME,"dataTables_length") #replace with proper submit button
         skip.click()
     elif grnoise==3: 
         writetofile.write("[Pulsar Candidate] CONFIDENCE:{}%".format(confidence))
 
-        skip = driver.find_element(By.CLASS_NAME,"ant-btn") #replace with proper submit button
+        skip = driver.find_element(By.CLASS_NAME,"dataTables_length") #replace with proper submit button
         skip.click()
     else: 
         writetofile.write("[Pulsar] CONFIDENCE:{}%".format(confidence))
 
-        skip = driver.find_element(By.CLASS_NAME,"ant-btn") #replace with proper submit button
+        skip = driver.find_element(By.CLASS_NAME,"dataTables_length") #replace with proper submit button
         skip.click()
     writetofile.close()
 
@@ -114,12 +131,10 @@ def Noise(graphnumber):
 
 ####
 
-getToDatabase(1)
+getToDatabase([username, password])
 
 ####
 
-def reloadgoofypage():
-    driver.get("https://www.geeksforgeeks.org/")
 
 
 for i in range(scrapnumber):
@@ -143,5 +158,4 @@ for i in range(scrapnumber):
     graphnumber+=1
 
     goToNextData() #real function to go to next page, currently does nothing
-    reloadgoofypage() #testing function REMOVE LATER
     sleep(3)
