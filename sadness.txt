@@ -1,0 +1,1 @@
+Due to the large filesize of the training data, I am not uploading the data to github. However, the data is available at link.phys.wvu.edu in my folder.
